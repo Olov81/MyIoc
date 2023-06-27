@@ -1,6 +1,11 @@
 ﻿namespace MyIoc;
 
-public class Registry
+public interface IRegistry
+{
+    TService Resolve<TService>() where TService : class;
+}
+
+public class Registry : IRegistry
 {
     private readonly Dictionary<Type, Func<Context, object>> _factories = new();
 
@@ -19,7 +24,7 @@ public class Registry
         Register(_ => factory());
     }
     
-    private void Register<TService>(Func<Context, TService> factory) where TService : class
+    public void Register<TService>(Func<Context, TService> factory) where TService : class
     {
         _factories.Add(typeof(TService), factory);
     }
@@ -43,7 +48,7 @@ public class Registry
             throw new InvalidOperationException($"Service {type.Name} was not registered");
         }
         
-        return _factories[typeWithoutTypeArgs](new Context(type));
+        return _factories[typeWithoutTypeArgs](new Context(type, this));
     }
     
     private Func<Context, TImplementation> CreateAutoFactory<TImplementation>() where TImplementation : class
@@ -75,5 +80,5 @@ public class Registry
         };
     }
 
-    private record Context(Type RequestedType);
+    public record Context(Type RequestedType, IRegistry Registry);
 }

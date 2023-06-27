@@ -85,6 +85,17 @@ public class RegistryTests
         
         service.Should().NotBeNull();
     }
+
+    [Fact]
+    public void Can_use_registry_to_create_factory()
+    {
+        _sut.Register(() => new MyClass(10));
+        _sut.Register<MyDependentClass>(context => new MyDependentClass(context.Registry.Resolve<MyClass>()));
+
+        var service = _sut.Resolve<MyDependentClass>();
+        
+        service.Should().NotBeNull();
+    }
     
     private class MyClass
     {
