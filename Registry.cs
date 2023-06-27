@@ -19,21 +19,26 @@ public class Registry : IRegistry
         Register(CreateAutoFactory<TService>());
     }
     
-    public void Register<TService>(Func<TService> factory) where TService : class
-    {
-        Register(_ => factory());
-    }
-    
     public void Register<TService>(Func<Context, TService> factory) where TService : class
     {
-        _factories.Add(typeof(TService), factory);
+        Register(typeof(TService), factory);
     }
     
     public void Register(Type type)
     {
-        _factories.Add(type, CreateAutoFactory(type));
+        Register(type, CreateAutoFactory(type));
     }
 
+    public void Register(Type type, Type implementationType)
+    {
+        Register(type, CreateAutoFactory(implementationType));
+    }
+    
+    private void Register(Type type, Func<Context, object> factory)
+    {
+        _factories.Add(type, factory);
+    }
+    
     public TService Resolve<TService>() where TService : class
     {
         return (Resolve(typeof(TService)) as TService)!;

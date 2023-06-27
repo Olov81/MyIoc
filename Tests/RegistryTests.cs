@@ -15,7 +15,7 @@ public class RegistryTests
     [Fact]
     public void Should_resolve_type_with_manual_factory()
     {
-        _sut.Register(() => new MyClass(5));
+        _sut.Register(_ => new MyClass(5));
         
         var instance = _sut.Resolve<MyClass>();
 
@@ -41,7 +41,7 @@ public class RegistryTests
     [Fact]
     public void Should_resolve_type_with_dependencies()
     {
-        _sut.Register(() => new MyClass(10));
+        _sut.Register(_ => new MyClass(10));
         _sut.Register<MyDependentClass>();
         
         var instance = _sut.Resolve<MyDependentClass>();
@@ -78,7 +78,7 @@ public class RegistryTests
     [Fact]
     public void Should_resolve_generic_services()
     {
-        _sut.Register(() => new MyClass(10));
+        _sut.Register(_ => new MyClass(10));
         _sut.Register(typeof(MyGenericService<>));
         
         var service = _sut.Resolve<MyGenericService<MyClass>>();
@@ -87,9 +87,20 @@ public class RegistryTests
     }
 
     [Fact]
+    public void Should_resolve_generic_interfaces()
+    {
+        _sut.Register<MyOtherClass>();
+        _sut.Register(typeof(IMyGenericInterface<>), typeof(MyGenericService<>));
+
+        var service = _sut.Resolve<IMyGenericInterface<MyOtherClass>>();
+        
+        service.Should().BeOfType<MyGenericService<MyOtherClass>>();
+    }
+
+    [Fact]
     public void Can_use_registry_to_create_factory()
     {
-        _sut.Register(() => new MyClass(10));
+        _sut.Register(_ => new MyClass(10));
         _sut.Register<MyDependentClass>(context => new MyDependentClass(context.Registry.Resolve<MyClass>()));
 
         var service = _sut.Resolve<MyDependentClass>();
@@ -133,7 +144,11 @@ public class RegistryTests
         }
     }
 
-    private class MyGenericService<T>
+    private interface IMyGenericInterface<T>
+    {
+    }
+    
+    private class MyGenericService<T> : IMyGenericInterface<T>
     {
         public MyGenericService(T t)
         {
