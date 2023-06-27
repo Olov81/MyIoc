@@ -68,9 +68,22 @@ public class RegistryTests
     }
 
     [Fact]
-    public void Should_throw_if_trying_to_automatically_register_service_without_a_constructor()
+    public void Should_throw_if_trying_to_resolve_service_without_a_constructor()
     {
-        Assert.Throws<InvalidOperationException>(() => _sut.Register<MyConstructorLessClass>());
+        _sut.Register<MyConstructorLessClass>();
+        
+        Assert.Throws<InvalidOperationException>(() => _sut.Resolve<MyConstructorLessClass>());
+    }
+
+    [Fact]
+    public void Should_resolve_generic_services()
+    {
+        _sut.Register(() => new MyClass(10));
+        _sut.Register(typeof(MyGenericService<>));
+        
+        var service = _sut.Resolve<MyGenericService<MyClass>>();
+        
+        service.Should().NotBeNull();
     }
     
     private class MyClass
@@ -107,5 +120,13 @@ public class RegistryTests
         {
             
         }
+    }
+
+    private class MyGenericService<T>
+    {
+        public MyGenericService(T t)
+        {
+            
+        }   
     }
 }
