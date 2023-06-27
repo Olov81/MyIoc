@@ -98,6 +98,28 @@ public class RegistryTests
     }
 
     [Fact]
+    public void Should_resolve_generic_type_with_specified_arguments()
+    {
+        _sut.Register(_ => new MyGenericService<MyClass>(new MyClass(10)));
+
+        var service = _sut.Resolve<MyGenericService<MyClass>>();
+        
+        service.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void Should_favour_generic_type_with_specified_arguments()
+    {
+        _sut.Register<MyOtherClass>();
+        _sut.Register(typeof(MyGenericService<>));
+        _sut.Register(_ => new MyGenericService<MyOtherClass>(new MyOtherClass { Value = 55 }));
+
+        var service = _sut.Resolve<MyGenericService<MyOtherClass>>();
+
+        service.Value.Value.Should().Be(55);
+    }
+    
+    [Fact]
     public void Can_use_registry_to_create_factory()
     {
         _sut.Register(_ => new MyClass(10));
@@ -124,6 +146,7 @@ public class RegistryTests
     
     private class MyOtherClass : IMyOtherInterface
     {
+        public int Value { get; set; }
     }
 
     private class MyDependentClass
@@ -150,9 +173,11 @@ public class RegistryTests
     
     private class MyGenericService<T> : IMyGenericInterface<T>
     {
-        public MyGenericService(T t)
+        public T Value { get; }
+
+        public MyGenericService(T value)
         {
-            
+            Value = value;
         }   
     }
 }

@@ -46,14 +46,19 @@ public class Registry : IRegistry
     
     private object Resolve(Type type)
     {
-        var typeWithoutTypeArgs = type.IsGenericType ? type.GetGenericTypeDefinition() : type;
-        
-        if (!_factories.ContainsKey(typeWithoutTypeArgs))
+        return GetFactory(type)(new Context(type, this));
+    }
+
+    private Func<Context, object> GetFactory(Type type)
+    {
+        if (_factories.TryGetValue(type, out var factory))
         {
-            throw new InvalidOperationException($"Service {type.Name} was not registered");
+            return factory;
         }
-        
-        return _factories[typeWithoutTypeArgs](new Context(type, this));
+
+        return type.IsGenericType && _factories.TryGetValue(type.GetGenericTypeDefinition(), out factory)
+            ? factory
+            : throw new InvalidOperationException($"Service {type.Name} was not registered");
     }
     
     private Func<Context, TImplementation> CreateAutoFactory<TImplementation>() where TImplementation : class
