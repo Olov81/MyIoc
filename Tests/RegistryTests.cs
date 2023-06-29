@@ -154,7 +154,7 @@ public class RegistryTests
     
     private class MyOtherClass : IMyOtherInterface
     {
-        public int Value { get; set; }
+        public int Value { get; init; }
     }
 
     private class MyDependentClass
