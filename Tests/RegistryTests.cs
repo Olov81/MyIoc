@@ -129,6 +129,14 @@ public class RegistryTests
         
         service.Should().NotBeNull();
     }
+
+    [Fact]
+    public void Should_throw_if_trying_to_resolve_service_with_unrelated_implementation()
+    {
+        _sut.Register(typeof(MyClass), typeof(MyOtherClass));
+
+        Assert.Throws<InvalidOperationException>(() => _sut.Resolve<MyClass>());
+    }
     
     private class MyClass
     {

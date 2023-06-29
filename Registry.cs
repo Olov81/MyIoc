@@ -41,7 +41,10 @@ public class Registry : IRegistry
     
     public TService Resolve<TService>() where TService : class
     {
-        return (Resolve(typeof(TService)) as TService)!;
+        var implementation = Resolve(typeof(TService));
+
+        return implementation as TService ?? throw new InvalidOperationException(
+            $"{implementation.GetType().Name} must be convertible to {typeof(TService).Name}");
     }
     
     private object Resolve(Type type)
