@@ -33,7 +33,15 @@ public class Registry : IRegistry
     {
         Register(type, CreateAutoFactory(implementationType));
     }
-    
+
+    public TService Resolve<TService>() where TService : class
+    {
+        var implementation = Resolve(typeof(TService));
+
+        return implementation as TService ?? throw new InvalidOperationException(
+            $"{implementation.GetType().Name} must be convertible to {typeof(TService).Name}");
+    }
+
     private void Register(Type type, Func<Context, object> factory)
     {
         if (_factories.ContainsKey(type))
@@ -43,15 +51,7 @@ public class Registry : IRegistry
         
         _factories.Add(type, factory);
     }
-    
-    public TService Resolve<TService>() where TService : class
-    {
-        var implementation = Resolve(typeof(TService));
 
-        return implementation as TService ?? throw new InvalidOperationException(
-            $"{implementation.GetType().Name} must be convertible to {typeof(TService).Name}");
-    }
-    
     private object Resolve(Type type)
     {
         var context = new Context(type, this);
