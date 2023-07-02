@@ -137,6 +137,26 @@ public class RegistryTests
 
         Assert.Throws<InvalidOperationException>(() => _sut.Resolve<MyClass>());
     }
+
+    [Fact]
+    public void Should_throw_if_registering_the_same_service_key_twice()
+    {
+        _sut.Register<MyClass>();
+
+        Assert.Throws<InvalidOperationException>(() => _sut.Register<MyClass>());
+    }
+
+    [Fact]
+    public void Should_only_create_one_object_per_type_when_resolving_a_tree()
+    {
+        _sut.Register<MyClass>(_ => new MyClass(10));
+        _sut.Register<MyDependentClass>();
+        _sut.Register<MyOtherDependentClass>();
+        
+        var service = _sut.Resolve<MyOtherDependentClass>();
+        
+        service.MyDependentClass.MyClass.Should().BeSameAs(service.MyClass);
+    }
     
     private class MyClass
     {
@@ -165,6 +185,18 @@ public class RegistryTests
         {
             MyClass = myClass;
         }
+    }
+
+    private class MyOtherDependentClass
+    {
+        public MyDependentClass MyDependentClass { get; }
+        public MyClass MyClass { get; }
+
+        public MyOtherDependentClass(MyDependentClass myDependentClass, MyClass myClass)
+        {
+            MyDependentClass = myDependentClass;
+            MyClass = myClass;
+        }    
     }
     
     private class MyConstructorLessClass

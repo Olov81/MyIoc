@@ -36,6 +36,11 @@ public class Registry : IRegistry
     
     private void Register(Type type, Func<Context, object> factory)
     {
+        if (_factories.ContainsKey(type))
+        {
+            throw new InvalidOperationException($"Service {type.Name} already registered");
+        }
+        
         _factories.Add(type, factory);
     }
     
@@ -49,9 +54,26 @@ public class Registry : IRegistry
     
     private object Resolve(Type type)
     {
-        return GetFactory(type)(new Context(type, this));
+        var context = new Context(type, this);
+        return Resolve(type, context);
     }
 
+    private object Resolve(Type type, Context context)
+    {
+        if (context.ServiceCache.TryGetValue(type, out var cachedService))
+        {
+            return cachedService;
+        }
+        
+        var factory = GetFactory(type);
+        
+        var service = factory(context);
+        
+        context.ServiceCache.Add(type, service);
+
+        return service;
+    }
+    
     private Func<Context, object> GetFactory(Type type)
     {
         if (_factories.TryGetValue(type, out var factory))
@@ -69,7 +91,7 @@ public class Registry : IRegistry
         var factory = CreateAutoFactory(typeof(TImplementation));
         return context => (factory(context) as TImplementation)!;
     }
-    
+
     private Func<Context, object> CreateAutoFactory(Type type)
     {
         return context =>
@@ -87,11 +109,14 @@ public class Registry : IRegistry
 
             return constructor
                 .GetParameters()
-                .Select(p => Resolve(p.ParameterType))
+                .Select(p => Resolve(p.ParameterType, context))
                 .ToArray()
                 .Pipe(constructor.Invoke);
         };
     }
 
-    public record Context(Type RequestedType, IRegistry Registry);
+    public record Context(Type RequestedType, IRegistry Registry)
+    {
+        public readonly Dictionary<Type, object> ServiceCache = new();
+    }
 }
