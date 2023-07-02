@@ -10,8 +10,5 @@ public class RuleBuilder<TInput>
         return this;
     }
     
-    public Func<TInput, bool> Build()
-    {
-        return input => _predicates.All(x => x(input));
-    }
+    public Func<TInput, bool> Aggregate() => input => _predicates.All(x => x(input));
 }

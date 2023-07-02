@@ -7,11 +7,15 @@ public static class RegistryExtensions
     public static void RegisterFromAssembly(
         this Registry registry,
         Assembly assembly,
-        Func<RuleBuilder<Type>, RuleBuilder<Type>> configureRules)
+        Func<RegistryRuleBuilder, RegistryRuleBuilder> configureRules)
     {
-        var rule = configureRules(new RuleBuilder<Type>()).Build();
+        var rules = configureRules(new RegistryRuleBuilder());
         
-        registry.AutoRegister(assembly.GetTypes().Where(rule), _ => true);
+        registry.AutoRegister(
+            assembly.GetTypes()
+                .Where(t => t.IsClass)
+                .Where(rules.IncludeTypeRule), 
+            rules.RegisterInterfaceRule);
     }
     
     public static void AutoRegister(

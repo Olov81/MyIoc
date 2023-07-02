@@ -46,14 +46,31 @@ public class AutoRegisteringTests
         [Fact]
         public void Should_register_types_from_assembly_fulfilling_the_specified_rule()
         {
-            _registry.RegisterFromAssembly(
-                typeof(ServiceOne).Assembly,
-                rules => rules
-                    .WithRule(t => t.Name == "ServiceOne")
-                    .WithRule(t => typeof(AutoRegisteringTests).GetNestedTypes(BindingFlags.NonPublic).Contains(t)));
+            RegisterFromAssembly(rules => rules.Include(t => t.Name == "ServiceOne"));
 
             Resolve<ServiceOne>().Should().NotBeNull();
             Assert.Throws<InvalidOperationException>(Resolve<ServiceTwo>);
+        }
+        
+        [Fact]
+        public void Should_only_register_interfaces_fulfilling_the_specified_rule()
+        {
+            RegisterFromAssembly(rules => rules.RegisterInterface(x => x.Interface.Name != "IServiceOne"));
+            
+            Assert.Throws<InvalidOperationException>(Resolve<IServiceOne>);
+        }
+
+        private void RegisterFromAssembly(Func<RegistryRuleBuilder, RegistryRuleBuilder> configureRules)
+        {
+            _registry.RegisterFromAssembly(
+                typeof(ServiceOne).Assembly,
+                rules => configureRules(rules)
+                    .Include(TypesInThisClass));
+        }
+
+        private static bool TypesInThisClass(Type type)
+        {
+            return typeof(AutoRegisteringTests).GetNestedTypes(BindingFlags.NonPublic).Contains(type);
         }
     }
     
