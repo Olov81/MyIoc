@@ -55,11 +55,13 @@ public class Registry : IRegistry
     private object Resolve(Type type)
     {
         var context = new Context(type, this);
-        return Resolve(type, context);
+        return Resolve(context);
     }
 
-    private object Resolve(Type type, Context context)
+    private object Resolve(Context context)
     {
+        var type = context.RequestedType;
+        
         if (context.ServiceCache.TryGetValue(type, out var cachedService))
         {
             return cachedService;
@@ -114,7 +116,7 @@ public class Registry : IRegistry
 
             return constructor
                 .GetParameters()
-                .Select(p => Resolve(p.ParameterType, context))
+                .Select(p => Resolve(context with { RequestedType = p.ParameterType }))
                 .ToArray()
                 .Pipe(constructor.Invoke);
         };

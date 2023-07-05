@@ -157,7 +157,19 @@ public class RegistryTests
         
         service.MyDependentClass.MyClass.Should().BeSameAs(service.MyClass);
     }
-    
+
+    [Fact]
+    public void Should_only_create_one_object_per_generic_type_when_resolving_a_tree()
+    {
+        _sut.Register<MyOtherClass>();
+        _sut.Register(typeof(MyGenericService<>));
+        _sut.Register<MyGenericConsumer>();
+        
+        var service = _sut.Resolve<MyGenericConsumer>();
+
+        service.ServiceOne.Should().BeSameAs(service.ServiceTwo);
+    }
+
     [Fact]
     public void Should_throw_if_specifying_an_interface_as_implementation()
     {
@@ -226,4 +238,6 @@ public class RegistryTests
             Value = value;
         }   
     }
+
+    private record MyGenericConsumer(MyGenericService<MyOtherClass> ServiceOne, MyGenericService<MyOtherClass> ServiceTwo);
 }
