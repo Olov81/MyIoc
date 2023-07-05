@@ -51,11 +51,19 @@ public class AutoRegisteringTests
             Resolve<ServiceOne>().Should().NotBeNull();
             Assert.Throws<InvalidOperationException>(Resolve<ServiceTwo>);
         }
+
+        [Fact]
+        public void Should_exclude_interfaces_as_service_implementations()
+        {
+            RegisterFromAssembly(rules => rules.Include(x => x.Name == nameof(IServiceOne)));
+            
+            Assert.Throws<InvalidOperationException>(Resolve<IServiceOne>);
+        }
         
         [Fact]
         public void Should_only_register_interfaces_fulfilling_the_specified_rule()
         {
-            RegisterFromAssembly(rules => rules.RegisterInterface(x => x.Interface.Name != "IServiceOne"));
+            RegisterFromAssembly(rules => rules.RegisterInterface(x => x.Interface.Name != nameof(IServiceOne)));
             
             Assert.Throws<InvalidOperationException>(Resolve<IServiceOne>);
         }

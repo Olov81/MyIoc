@@ -14,7 +14,7 @@ public static class RegistryExtensions
         registry.AutoRegister(
             assembly.GetTypes()
                 .Where(t => t.IsClass)
-                .Where(rules.IncludeTypeRule), 
+                .Where(rules.IncludeTypeRule),
             rules.RegisterInterfaceRule);
     }
     

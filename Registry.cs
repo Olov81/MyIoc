@@ -94,6 +94,11 @@ public class Registry : IRegistry
 
     private Func<Context, object> CreateAutoFactory(Type type)
     {
+        if (type.IsInterface)
+        {
+            throw new InvalidOperationException("Interfaces are not valid as service implementations");    
+        }
+        
         return context =>
         {
             var genericType = type.IsGenericType 

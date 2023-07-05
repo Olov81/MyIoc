@@ -158,6 +158,12 @@ public class RegistryTests
         service.MyDependentClass.MyClass.Should().BeSameAs(service.MyClass);
     }
     
+    [Fact]
+    public void Should_throw_if_specifying_an_interface_as_implementation()
+    {
+        Assert.Throws<InvalidOperationException>(() => _sut.Register<IMyOtherInterface>());
+    }
+
     private class MyClass
     {
         public int Value { get; }
