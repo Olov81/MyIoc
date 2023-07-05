@@ -29,7 +29,8 @@ public static class RegistryExtensions
 
             foreach (var @interface in service.GetInterfaces().Where(x => shouldRegisterInterface((x, service))))
             {
-                registry.Register(@interface, service);
+                var key = @interface.IsGenericType  ? @interface.GetGenericTypeDefinition() : @interface;
+                registry.Register(key, service);
             }
         }
     }

@@ -68,6 +68,14 @@ public class AutoRegisteringTests
             Assert.Throws<InvalidOperationException>(Resolve<IServiceOne>);
         }
 
+        [Fact]
+        public void Should_register_generic_interfaces()
+        {
+            RegisterFromAssembly(_ => _);
+            var service = _registry.Resolve<ITemplateInterface<int>>();
+            service.Should().BeOfType<TemplateImplementation<int>>();
+        }
+        
         private void RegisterFromAssembly(Func<RegistryRuleBuilder, RegistryRuleBuilder> configureRules)
         {
             _registry.RegisterFromAssembly(
@@ -98,6 +106,14 @@ public class AutoRegisteringTests
     }
 
     private class ServiceTwo
+    {
+    }
+
+    private interface ITemplateInterface<T>
+    {
+    }
+
+    private class TemplateImplementation<T> : ITemplateInterface<T>
     {
     }
 }
